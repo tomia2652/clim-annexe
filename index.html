@@ -1,0 +1,268 @@
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clim Annexe — Contrôleur V2</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a}
+.page{max-width:1020px;margin:auto;padding:14px;display:flex;gap:16px;align-items:flex-start}
+.app{flex:1;min-width:0;max-width:760px}
+.head{background:#fff;border-radius:18px;padding:18px;text-align:center;box-shadow:0 3px 14px #0001;position:relative}
+h1{margin:0;font-size:24px}.sub{color:#667085;margin-top:5px;font-size:13px}
+.credit{position:absolute;top:8px;right:14px;font-size:10px;color:#b4bac2;letter-spacing:.2px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.tab{padding:13px;border:0;border-radius:12px;background:#dfe5ea;font-weight:bold;cursor:pointer}.tab.active{background:#17202a;color:#fff}
+.panel{display:none}.panel.active{display:block}.card{background:#fff;border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 2px 10px #0001}
+h2{font-size:17px;margin:0 0 13px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+button,input,select{font:inherit;border-radius:11px;border:1px solid #ccd2d8;padding:12px;background:#fff}button{cursor:pointer}
+button:active,.clicked{transform:scale(.96);filter:brightness(1.08)}.clicked{animation:click .45s ease}
+@keyframes click{0%{transform:scale(1)}35%{transform:scale(.94)}70%{transform:scale(1.03)}100%{transform:scale(1)}}
+.state{border:2px solid #d5d9de;transition:.25s}.state.on{background:#e9f8ed;border-color:#31a354}.state.off{background:#f1f2f3;border-color:#c8cdd2}
+.stateTop{display:flex;align-items:center;gap:12px}.dot{width:15px;height:15px;border-radius:50%;background:#9299a1}.on .dot{background:#31a354;box-shadow:0 0 0 6px #31a35422}
+.big{font-size:17px;font-weight:bold}.stateTitle{font-size:25px;font-weight:bold}.muted{color:#667085;font-size:13px}
+.stateButtons{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}.onbtn{background:#31a354;color:#fff}.offbtn{background:#dfe2e5;color:#555}.inactive{opacity:.45}
+.control{margin-top:20px}.control:first-child{margin-top:0}.controlHead{display:flex;justify-content:space-between;align-items:center;font-weight:bold;margin-bottom:8px}.value{font-size:20px;min-width:80px;text-align:right}
+input[type=range]{width:100%;padding:0;border:0;accent-color:#31a354;height:28px}.scale{display:flex;justify-content:space-between;color:#667085;font-size:12px}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:9px}.choice button.active{background:#17202a;color:#fff}
+.status{padding:12px;border-radius:11px;background:#f1f3f5;font-size:14px;margin-top:15px;min-height:44px}.ok{background:#e9f8ed}.error{background:#fff0f0}
+label{font-size:12px;color:#667085;display:block;margin-bottom:5px}.field{margin-bottom:12px}
+pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;padding:12px;overflow:auto;font-size:12px}
+.note{font-size:12px;color:#667085;line-height:1.4}
+.sidebar{width:230px;flex-shrink:0;display:flex;flex-direction:column;gap:14px;position:sticky;top:14px}
+.ad{border-radius:16px;padding:16px;box-shadow:0 2px 10px #0001;position:relative;overflow:hidden}
+.ad-edn{background:linear-gradient(160deg,#4f46e5,#7c3aed 55%,#c026d3);color:#fff}
+.ad-edn::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% -10%,#ffffff33,transparent 55%)}
+.ad-tag{display:inline-block;background:#ffffff26;border:1px solid #ffffff40;border-radius:999px;padding:3px 9px;font-size:10px;font-weight:bold;letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px}
+.ad-title{font-size:16px;font-weight:bold;line-height:1.25;margin-bottom:8px;position:relative}
+.ad-list{margin:0 0 10px;padding-left:18px;font-size:12.5px;line-height:1.55;position:relative}
+.ad-list li{margin-bottom:3px}
+.ad-price{font-size:14px;font-weight:bold;margin:10px 0 8px;position:relative}
+.ad-contact{display:block;background:#fff;color:#4f46e5;text-align:center;border-radius:10px;padding:9px;font-size:12.5px;font-weight:bold;text-decoration:none;position:relative}
+.ad-slot{background:#fff;border:2px dashed #ccd2d8;color:#98a1ab;text-align:center;padding:26px 12px;font-size:13px;font-weight:bold;line-height:1.5}
+.ad-slot small{display:block;font-weight:normal;margin-top:6px;font-size:11px}
+.ad-slot a{color:#667085}
+@media(max-width:900px){.page{flex-direction:column}.sidebar{width:100%;position:static;flex-direction:row}.ad{flex:1}}
+@media(max-width:560px){.sidebar{flex-direction:column}}
+@media(max-width:450px){.page{padding:8px}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<aside class="sidebar">
+<div class="ad ad-edn">
+<span class="ad-tag">Publicité</span>
+<div class="ad-title">🚀 Extension EDN — révise 2x plus vite</div>
+<ul class="ad-list">
+<li>✅ Cochage &amp; navigation au clavier sur Asclepia, edn.fr et Hypocampus</li>
+<li>🚩 Marquage de questions par drapeau sur edn.fr</li>
+<li>🔖 Ancrage par matière sur edn.fr</li>
+<li>⚡ Consultation du LiSA sur ReFouA en 1 clic depuis une question edn.fr</li>
+<li>✨ Plein d'autres améliorations d'ergonomie</li>
+</ul>
+<div class="ad-price">Prix alléchant 😏</div>
+<a class="ad-contact" href="mailto:thierrymiller12345@gmail.com">✉️ Contact : thierrymiller12345@gmail.com</a>
+</div>
+
+<div class="ad ad-slot">📢 Espace pub à louer
+<small>Contact : <a href="mailto:thierrymiller12345@gmail.com">thierrymiller12345@gmail.com</a></small>
+</div>
+</aside>
+
+<div class="app">
+<div class="head"><div class="credit">by Tom Mdj</div><h1>❄️ Clim Annexe</h1><div class="sub">FCAG50BVEB · contrôle local · <span id="connection">connexion…</span></div></div>
+
+<div class="tabs">
+<button type="button" class="tab active" id="tab0">🎛️ Commandes</button>
+<button type="button" class="tab" id="tab1">⚙️ Avancé</button>
+</div>
+
+<section id="simple" class="panel active">
+<div class="card state off" id="stateCard">
+<div class="stateTop"><span class="dot"></span><div><div class="stateTitle" id="stateTitle">Lecture…</div><div class="muted" id="stateDetail">Récupération de l'état actuel de la climatisation</div></div></div>
+<div class="stateButtons">
+<button type="button" class="big onbtn" id="onBtn">🟢 ALLUMER</button>
+<button type="button" class="big offbtn" id="offBtn">⚪ ÉTEINDRE</button>
+</div>
+</div>
+
+<div class="card">
+<h2>🌡️ Température</h2>
+<div class="controlHead"><span>Consigne</span><span class="value" id="tempValue">— °C</span></div>
+<input id="tempSlider" type="range" min="16" max="32" step=".5" value="25">
+<div class="scale"><span>16°C</span><span>24°C</span><span>32°C</span></div>
+</div>
+
+<div class="card">
+<h2>🌀 Ventilation</h2>
+<div class="controlHead"><span>Vitesse</span><span class="value" id="fanValue">—</span></div>
+<input id="fanSlider" type="range" min="1" max="5" step="1" value="3">
+<div class="scale"><span>1</span><span>3</span><span>5</span></div>
+<button type="button" id="autoFan" style="width:100%;margin-top:10px">AUTO</button>
+</div>
+
+<div class="card">
+<h2>↕️ Direction</h2>
+<div class="choice">
+<button type="button" id="fixedBtn">⏹️ Fixe</button>
+<button type="button" id="movingBtn">↕️ En mouvement</button>
+</div>
+</div>
+
+<div class="card">
+<div class="status" id="actionStatus">Lecture automatique de l'état…</div>
+</div>
+</section>
+
+<section id="advanced" class="panel">
+<div class="card">
+<h2>🌐 Connexion</h2>
+<div class="field"><label>Adresse IP de la clim</label><input id="ip" value="192.168.0.139" style="width:100%"></div>
+<div class="grid"><button type="button" id="saveIp">💾 Enregistrer</button><button type="button" id="testIp">🔌 Tester</button></div>
+<button type="button" id="scanBtn" style="width:100%;margin-top:9px">🔍 Scanner le réseau (IP a changé ?)</button>
+<div class="note" id="scanNote" style="margin-top:10px">Les commandes restent dans cette page : aucun nouvel onglet n'est utilisé.</div>
+</div>
+
+<div class="card">
+<h2>⚙️ Commande complète</h2>
+<div class="field"><label>Mode</label><select id="mode" style="width:100%"><option value="3">❄️ Froid (3)</option><option value="6">💨 Ventilation seule (6)</option></select></div>
+<div class="grid">
+<div class="field"><label>Température</label><input id="advTemp" type="number" min="16" max="32" step=".5" value="25" style="width:100%"></div>
+<div class="field"><label>Ventilation</label><select id="advFan" style="width:100%"><option value="3">1</option><option value="4">2</option><option value="5">3</option><option value="6">4</option><option value="7">5</option><option value="A">AUTO</option></select></div>
+</div>
+<div class="field"><label>Direction</label><select id="advDir" style="width:100%"><option value="0">Fixe</option><option value="1">En mouvement</option></select></div>
+<button type="button" class="big" id="applyAdvanced" style="width:100%">▶️ Appliquer</button>
+</div>
+
+<div class="card">
+<h2>⏰ Programmation</h2><button type="button" id="scheduleBtn" style="width:100%">📅 Lire les programmations</button>
+<pre id="schedule">—</pre>
+<div class="note">Lecture seule : modification de la programmation désactivée tant que le format d'écriture n'est pas confirmé.</div>
+</div>
+
+<div class="card">
+<h2>📊 Informations</h2>
+<div class="grid" id="infoGrid">
+<button type="button" data-path="/aircon/get_sensor_info">🌡️ Capteur</button><button type="button" data-path="/aircon/get_model_info">🧩 Modèle</button>
+<button type="button" data-path="/common/get_datetime">🕐 Horloge</button><button type="button" data-path="/aircon/get_nw_err">📡 Réseau</button>
+<button type="button" data-path="/common/get_notify">🔔 Auto-off</button><button type="button" data-path="/aircon/get_target">🎯 Target</button>
+<button type="button" data-path="/aircon/get_price">💰 Tarif</button><button type="button" data-path="/common/get_regioncode">🌍 Région</button>
+<button type="button" data-path="/common/get_remote_method">🔁 Méthode</button><button type="button" data-path="/common/get_wifi_setting">📶 Wi-Fi</button>
+<button type="button" data-path="/common/basic_info">📋 Infos générales</button><button type="button" id="readAdvancedState">🎛️ État clim</button>
+</div>
+</div>
+<div class="card"><h2>🧪 Réponse API</h2><pre id="output">—</pre></div>
+</section>
+</div>
+
+</div>
+
+<script>
+(() => {
+let current={pow:0,mode:"3",stemp:25,f_rate:"3",f_dir:"0"};
+const $=id=>document.getElementById(id);
+let ip=localStorage.getItem("daikin_ip")||"192.168.0.139";$("ip").value=ip;
+
+function cleanIP(v){return v.trim().replace(/^https?:\/\//,"").replace(/\/.*$/,"")}
+function base(){return "http://"+cleanIP($("ip").value)}
+function parse(s){const o={};s.trim().split(",").forEach(x=>{const i=x.indexOf("=");if(i>0)o[x.slice(0,i)]=x.slice(i+1)});return o}
+function animate(el){el.classList.remove("clicked");void el.offsetWidth;el.classList.add("clicked");setTimeout(()=>el.classList.remove("clicked"),500)}
+function message(text,type=""){const x=$("actionStatus");x.className="status "+type;x.innerHTML=text}
+function render(){
+ const on=String(current.pow)==="1", auto=String(current.f_rate).toUpperCase()==="A", moving=String(current.f_dir)!=="0";
+ $("stateCard").className="card state "+(on?"on":"off");
+ $("stateTitle").textContent=on?"EN MARCHE":"ÉTEINTE";
+ $("stateDetail").textContent=on
+  ? (String(current.mode)==="6"?"💨 Ventilation seule":"❄️ Refroidissement")+" · "+Number(current.stemp).toFixed(1)+" °C"
+  :"La climatisation est actuellement arrêtée";
+ $("tempSlider").value=Number(current.stemp)||25;$("tempValue").textContent=(Number(current.stemp)||25).toFixed(1)+" °C";
+ $("fanSlider").disabled=auto;$("fanValue").textContent=auto?"AUTO":"Niveau "+current.f_rate;
+ $("autoFan").classList.toggle("active",auto);
+ $("fixedBtn").classList.toggle("active",!moving);$("movingBtn").classList.toggle("active",moving);
+ $("mode").value=String(current.mode)==="6"?"6":"3";
+ $("advTemp").value=Number(current.stemp)||25;$("advFan").value=String(current.f_rate);$("advDir").value=moving?"1":"0";
+ $("connection").textContent="🟢 connecté";
+}
+async function readControl(show=true){
+ try{
+  const r=await fetch(base()+"/aircon/get_control_info",{cache:"no-store"});
+  if(!r.ok)throw Error("HTTP "+r.status);
+  const o=parse(await r.text());
+  if(o.ret!=="OK")throw Error(o.ret||"Réponse invalide");
+  current={...current,...o};render();
+  if(show)message("✅ État réel actualisé");
+ }catch(e){
+  $("connection").textContent="🔴 non joignable";
+  if(show)message("❌ Impossible de lire l'état : "+e.message,"error");
+ }
+}
+function send(params,el){
+ animate(el);
+ const merged={pow:current.pow,mode:current.mode||"3",stemp:Number(current.stemp||25).toFixed(1),f_rate:current.f_rate||"3",f_dir:current.f_dir||"0",...params};
+ const u=base()+"/aircon/set_control_info?"+new URLSearchParams(merged).toString();
+ message("⏳ Commande envoyée…");
+ fetch(u,{mode:"no-cors",cache:"no-store"}).catch(()=>{});
+ const iframe=document.createElement("iframe");iframe.style.display="none";iframe.src=u;document.body.appendChild(iframe);setTimeout(()=>iframe.remove(),1200);
+ current={...current,...merged};render();
+ setTimeout(()=>readControl(true),650);
+}
+function switchTab(n){$("tab0").classList.toggle("active",n===0);$("tab1").classList.toggle("active",n===1);$("simple").classList.toggle("active",n===0);$("advanced").classList.toggle("active",n===1)}
+$("tab0").addEventListener("click",()=>switchTab(0));$("tab1").addEventListener("click",()=>switchTab(1));
+$("onBtn").addEventListener("click",e=>send({pow:1},e.currentTarget));
+$("offBtn").addEventListener("click",e=>send({pow:0},e.currentTarget));
+$("tempSlider").addEventListener("input",()=>{$("tempValue").textContent=Number($("tempSlider").value).toFixed(1)+" °C"});
+$("tempSlider").addEventListener("change",e=>send({pow:1,mode:current.mode||"3",stemp:Number(e.target.value).toFixed(1)},e.currentTarget));
+$("fanSlider").addEventListener("change",e=>send({pow:1,f_rate:e.target.value},e.currentTarget));
+$("autoFan").addEventListener("click",e=>send({pow:1,f_rate:"A"},e.currentTarget));
+$("fixedBtn").addEventListener("click",e=>send({pow:1,f_dir:0},e.currentTarget));
+$("movingBtn").addEventListener("click",e=>send({pow:1,f_dir:1},e.currentTarget));
+$("saveIp").addEventListener("click",e=>{ip=cleanIP($("ip").value);$("ip").value=ip;localStorage.setItem("daikin_ip",ip);animate(e.currentTarget);readControl(true)});
+$("testIp").addEventListener("click",e=>{animate(e.currentTarget);readControl(true)});
+
+async function probe(host,timeoutMs){
+ const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),timeoutMs);
+ try{
+  const r=await fetch("http://"+host+"/aircon/get_control_info",{cache:"no-store",signal:ctrl.signal});
+  clearTimeout(t);
+  const txt=await r.text();
+  return txt.trim().startsWith("ret=OK");
+ }catch(e){clearTimeout(t);return false}
+}
+async function scanNetwork(){
+ const scanBtn=$("scanBtn");
+ const base3=cleanIP($("ip").value).split(".").slice(0,3).join(".");
+ scanBtn.disabled=true;
+ const total=254;let done=0;let found=null;
+ const setNote=t=>{$("scanNote").textContent=t};
+ setNote("🔍 Scan du réseau "+base3+".0/24 en cours… 0%");
+ const hosts=Array.from({length:total},(_,i)=>base3+"."+(i+1));
+ const chunkSize=24;
+ for(let i=0;i<hosts.length && !found;i+=chunkSize){
+  const chunk=hosts.slice(i,i+chunkSize);
+  const results=await Promise.all(chunk.map(h=>probe(h,350).then(ok=>ok?h:null)));
+  done+=chunk.length;
+  setNote("🔍 Scan du réseau "+base3+".0/24 en cours… "+Math.min(100,Math.round(done/total*100))+"%");
+  const hit=results.find(x=>x);
+  if(hit)found=hit;
+ }
+ scanBtn.disabled=false;
+ if(found){
+  ip=found;$("ip").value=ip;localStorage.setItem("daikin_ip",ip);
+  setNote("✅ Clim trouvée à l'adresse "+found+" (enregistrée automatiquement).");
+  readControl(true);
+ }else{
+  setNote("❌ Aucune Daikin trouvée sur le sous-réseau "+base3+".0/24. Vérifie que ton appareil est sur le même Wi-Fi/réseau.");
+ }
+}
+$("scanBtn").addEventListener("click",e=>{animate(e.currentTarget);scanNetwork()});
+$("applyAdvanced").addEventListener("click",e=>send({pow:1,mode:$("mode").value,stemp:Number($("advTemp").value).toFixed(1),f_rate:$("advFan").value,f_dir:$("advDir").value},e.currentTarget));
+$("scheduleBtn").addEventListener("click",async e=>{animate(e.currentTarget);await readPath("/aircon/get_scdltimer","schedule")});
+document.querySelectorAll("[data-path]").forEach(b=>b.addEventListener("click",async e=>{animate(e.currentTarget);await readPath(e.currentTarget.dataset.path,"output")}));
+$("readAdvancedState").addEventListener("click",()=>readPath("/aircon/get_control_info","output"));
+async function readPath(path,target){
+ try{$(target).textContent="Lecture…";const r=await fetch(base()+path,{cache:"no-store"});$(target).textContent=await r.text()}
+ catch(e){$(target).textContent="Erreur : "+e.message}
+}
+render();readControl(false);setInterval(()=>readControl(false),15000);
+})();
+</script>
+</body>
+</html>
