@@ -22,6 +22,7 @@ button:active,.clicked{transform:scale(.96);filter:brightness(1.08)}.clicked{ani
 .control{margin-top:20px}.control:first-child{margin-top:0}.controlHead{display:flex;justify-content:space-between;align-items:center;font-weight:bold;margin-bottom:8px}.value{font-size:20px;min-width:80px;text-align:right}
 input[type=range]{width:100%;padding:0;border:0;accent-color:#31a354;height:28px}.scale{display:flex;justify-content:space-between;color:#667085;font-size:12px}
 .choice{display:grid;grid-template-columns:1fr 1fr;gap:9px}.choice button.active{background:#17202a;color:#fff}
+.modeBtn.active{background:#17202a;color:#fff}
 .status{padding:12px;border-radius:11px;background:#f1f3f5;font-size:14px;margin-top:15px;min-height:44px}.ok{background:#e9f8ed}.error{background:#fff0f0}
 label{font-size:12px;color:#667085;display:block;margin-bottom:5px}.field{margin-bottom:12px}
 pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;padding:12px;overflow:auto;font-size:12px}
@@ -58,7 +59,7 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 <li>⚡ Consultation du LiSA sur ReFouA en 1 clic depuis une question edn.fr</li>
 <li>✨ Plein d'autres améliorations d'ergonomie</li>
 </ul>
-<div class="ad-price">Prix alléchant 😏 Démo possible !</div>
+<div class="ad-price">Prix alléchant 😏</div>
 <a class="ad-contact" href="mailto:thierrymiller12345@gmail.com">✉️ Contact : thierrymiller12345@gmail.com</a>
 </div>
 
@@ -68,7 +69,7 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 </aside>
 
 <div class="app">
-<div class="head"><div class="credit">by Tom Mdj</div><h1>❄️ Clim Annexe</h1><div class="sub">FCAG50BVEB · contrôle local · <span id="connection">connexion…</span></div><div class="sub" ><strong>Minha - Arvit : 18h45 précises !!!!!!</strong></div></div>
+<div class="head"><div class="credit">by Tom Mdj</div><h1>❄️ Clim Annexe</h1><div class="sub">FCAG50BVEB · contrôle local · <span id="connection">connexion…</span></div></div>
 
 <div class="tabs">
 <button type="button" class="tab active" id="tab0">🎛️ Commandes</button>
@@ -92,11 +93,24 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 </div>
 
 <div class="card">
-<h2>🌀 Ventilation</h2>
-<div class="controlHead"><span>Vitesse</span><span class="value" id="fanValue">—</span></div>
+<h2>🧊 Mode</h2>
+<div class="grid" id="modeGrid">
+<button type="button" class="modeBtn" data-mode="3">❄️ Froid</button>
+<button type="button" class="modeBtn" data-mode="4">🔥 Chaud</button>
+<button type="button" class="modeBtn" data-mode="2">💧 Déshumidification</button>
+<button type="button" class="modeBtn" data-mode="6">💨 Ventilation seule</button>
+<button type="button" class="modeBtn" data-mode="0">🔄 Auto</button>
+</div>
+<div class="note" style="margin-top:8px">⚠️ Le mode Chaud peut ne pas être disponible selon la version exacte de l'unité (certaines FCAG sont froid seul) — teste et vérifie que ça s'applique réellement.</div>
+</div>
+
+<div class="card">
+<h2>🌀 Vitesse du ventilateur (puissance)</h2>
+<div class="controlHead"><span>Niveau</span><span class="value" id="fanValue">—</span></div>
 <input id="fanSlider" type="range" min="1" max="5" step="1" value="3">
 <div class="scale"><span>1</span><span>3</span><span>5</span></div>
 <button type="button" id="autoFan" style="width:100%;margin-top:10px">AUTO</button>
+<div class="note" style="margin-top:8px">Ce réglage s'applique quel que soit le mode choisi ci-dessus (froid, chaud, ventilation seule…).</div>
 </div>
 
 <div class="card">
@@ -118,12 +132,12 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 <div class="field"><label>Adresse IP de la clim</label><input id="ip" value="192.168.0.139" style="width:100%"></div>
 <div class="grid"><button type="button" id="saveIp">💾 Enregistrer</button><button type="button" id="testIp">🔌 Tester</button></div>
 <button type="button" id="scanBtn" style="width:100%;margin-top:9px">🔍 Scanner le réseau (IP a changé ?)</button>
-<div class="note" id="scanNote" style="margin-top:10px">Les commandes restent dans cette page : aucun nouvel onglet n'est utilisé.</div>
+<div class="note" id="scanNote" style="margin-top:10px">Fichier unique et autonome — aucun serveur ni script à installer. Les commandes (ON/OFF, température, mode…) s'envoient toujours normalement. La lecture d'état affichée peut rester indisponible selon ton navigateur/réseau (voir message d'état en bas de l'onglet Commandes) — c'est une limite de sécurité des navigateurs face à un appareil qui n'autorise pas explicitement la lecture cross-origin, pas quelque chose de réparable dans ce fichier seul.</div>
 </div>
 
 <div class="card">
 <h2>⚙️ Commande complète</h2>
-<div class="field"><label>Mode</label><select id="mode" style="width:100%"><option value="3">❄️ Froid (3)</option><option value="6">💨 Ventilation seule (6)</option></select></div>
+<div class="field"><label>Mode</label><select id="mode" style="width:100%"><option value="0">🔄 Auto (0)</option><option value="2">💧 Déshumidification (2)</option><option value="3">❄️ Froid (3)</option><option value="4">🔥 Chaud (4)</option><option value="6">💨 Ventilation seule (6)</option></select></div>
 <div class="grid">
 <div class="field"><label>Température</label><input id="advTemp" type="number" min="16" max="32" step=".5" value="25" style="width:100%"></div>
 <div class="field"><label>Ventilation</label><select id="advFan" style="width:100%"><option value="3">1</option><option value="4">2</option><option value="5">3</option><option value="6">4</option><option value="7">5</option><option value="A">AUTO</option></select></div>
@@ -162,25 +176,42 @@ const $=id=>document.getElementById(id);
 let ip=localStorage.getItem("daikin_ip")||"192.168.0.139";$("ip").value=ip;
 
 function cleanIP(v){return v.trim().replace(/^https?:\/\//,"").replace(/\/.*$/,"")}
-function base(){return "http://"+cleanIP($("ip").value)}
+function climHost(){return cleanIP($("ip").value)}
+function base(){return "http://"+climHost()}
 function parse(s){const o={};s.trim().split(",").forEach(x=>{const i=x.indexOf("=");if(i>0)o[x.slice(0,i)]=x.slice(i+1)});return o}
 function animate(el){el.classList.remove("clicked");void el.offsetWidth;el.classList.add("clicked");setTimeout(()=>el.classList.remove("clicked"),500)}
 function message(text,type=""){const x=$("actionStatus");x.className="status "+type;x.innerHTML=text}
+
+// f_rate (code API) <-> niveau affiché 1-5 : f_rate=3 -> niveau 1 ... f_rate=7 -> niveau 5
+function levelToRate(l){return String(Number(l)+2)}
+function rateToLevel(r){const n=Number(r);return (n>=3&&n<=7)?n-2:3}
+
+const MODE_LABELS={"0":"🔄 Auto","2":"💧 Déshumidification","3":"❄️ Refroidissement","4":"🔥 Chauffage","6":"💨 Ventilation seule"};
+const KNOWN_MODES=Object.keys(MODE_LABELS);
+
 function render(){
  const on=String(current.pow)==="1", auto=String(current.f_rate).toUpperCase()==="A", moving=String(current.f_dir)!=="0";
+ const modeKey=KNOWN_MODES.includes(String(current.mode))?String(current.mode):"3";
  $("stateCard").className="card state "+(on?"on":"off");
  $("stateTitle").textContent=on?"EN MARCHE":"ÉTEINTE";
  $("stateDetail").textContent=on
-  ? (String(current.mode)==="6"?"💨 Ventilation seule":"❄️ Refroidissement")+" · "+Number(current.stemp).toFixed(1)+" °C"
+  ? MODE_LABELS[modeKey]+" · "+Number(current.stemp).toFixed(1)+" °C"
   :"La climatisation est actuellement arrêtée";
  $("tempSlider").value=Number(current.stemp)||25;$("tempValue").textContent=(Number(current.stemp)||25).toFixed(1)+" °C";
- $("fanSlider").disabled=auto;$("fanValue").textContent=auto?"AUTO":"Niveau "+current.f_rate;
+ if(!auto)$("fanSlider").value=rateToLevel(current.f_rate);
+ $("fanSlider").disabled=auto;$("fanValue").textContent=auto?"AUTO":"Niveau "+rateToLevel(current.f_rate);
  $("autoFan").classList.toggle("active",auto);
  $("fixedBtn").classList.toggle("active",!moving);$("movingBtn").classList.toggle("active",moving);
- $("mode").value=String(current.mode)==="6"?"6":"3";
+ document.querySelectorAll(".modeBtn").forEach(b=>b.classList.toggle("active",b.dataset.mode===modeKey));
+ $("mode").value=modeKey;
  $("advTemp").value=Number(current.stemp)||25;$("advFan").value=String(current.f_rate);$("advDir").value=moving?"1":"0";
- $("connection").textContent="🟢 connecté";
 }
+// Ce fichier est 100% autonome, un seul .html, rien d'autre à installer.
+// Limite technique (pas contournable en JS pur, quel que soit le code) : si ta clim ne renvoie pas
+// d'en-tête CORS, le navigateur autorise l'ENVOI des commandes mais refuse de te laisser LIRE la
+// réponse — d'où le message "état non lisible" ci-dessous quand ça arrive. Les boutons continuent
+// de fonctionner en aveugle dans ce cas (comme le confirment tes tests actuels).
+const HELP_CORS=" (état illisible depuis le navigateur — limite du réseau/appareil, pas un bug du fichier)";
 async function readControl(show=true){
  try{
   const r=await fetch(base()+"/aircon/get_control_info",{cache:"no-store"});
@@ -188,29 +219,45 @@ async function readControl(show=true){
   const o=parse(await r.text());
   if(o.ret!=="OK")throw Error(o.ret||"Réponse invalide");
   current={...current,...o};render();
+  $("connection").textContent="🟢 connecté";
   if(show)message("✅ État réel actualisé");
  }catch(e){
-  $("connection").textContent="🔴 non joignable";
-  if(show)message("❌ Impossible de lire l'état : "+e.message,"error");
+  $("connection").textContent="🔴 injoignable";
+  if(show)message("❌ Impossible de lire l'état : "+e.message+HELP_CORS,"error");
  }
 }
-function send(params,el){
- animate(el);
+async function send(params,el){
+ if(el)animate(el);
  const merged={pow:current.pow,mode:current.mode||"3",stemp:Number(current.stemp||25).toFixed(1),f_rate:current.f_rate||"3",f_dir:current.f_dir||"0",...params};
- const u=base()+"/aircon/set_control_info?"+new URLSearchParams(merged).toString();
  message("⏳ Commande envoyée…");
- fetch(u,{mode:"no-cors",cache:"no-store"}).catch(()=>{});
- const iframe=document.createElement("iframe");iframe.style.display="none";iframe.src=u;document.body.appendChild(iframe);setTimeout(()=>iframe.remove(),1200);
- current={...current,...merged};render();
- setTimeout(()=>readControl(true),650);
+ try{
+  const r=await fetch(base()+"/aircon/set_control_info?"+new URLSearchParams(merged).toString(),{cache:"no-store"});
+  const o=parse(await r.text());
+  if(o.ret!=="OK")throw Error(o.ret||"Réponse invalide");
+  current={...current,...merged};render();
+  $("connection").textContent="🟢 connecté";
+  message("✅ Commande appliquée");
+ }catch(e){
+  // Repli : si la lecture de la réponse échoue (userscript absent), on tente quand même l'envoi
+  // en mode no-cors — la commande peut passer côté clim même si on ne peut pas lire la confirmation.
+  try{await fetch(base()+"/aircon/set_control_info?"+new URLSearchParams(merged).toString(),{mode:"no-cors",cache:"no-store"});
+   current={...current,...merged};render();
+   message("⚠️ Commande envoyée mais pas confirmée (lecture bloquée)"+HELP_CORS,"error");
+  }catch(e2){
+   message("❌ Échec de la commande : "+e.message+HELP_CORS,"error");
+  }
+  $("connection").textContent="🔴 injoignable";
+ }
 }
 function switchTab(n){$("tab0").classList.toggle("active",n===0);$("tab1").classList.toggle("active",n===1);$("simple").classList.toggle("active",n===0);$("advanced").classList.toggle("active",n===1)}
 $("tab0").addEventListener("click",()=>switchTab(0));$("tab1").addEventListener("click",()=>switchTab(1));
 $("onBtn").addEventListener("click",e=>send({pow:1},e.currentTarget));
 $("offBtn").addEventListener("click",e=>send({pow:0},e.currentTarget));
+document.querySelectorAll(".modeBtn").forEach(b=>b.addEventListener("click",e=>send({pow:1,mode:e.currentTarget.dataset.mode},e.currentTarget)));
 $("tempSlider").addEventListener("input",()=>{$("tempValue").textContent=Number($("tempSlider").value).toFixed(1)+" °C"});
 $("tempSlider").addEventListener("change",e=>send({pow:1,mode:current.mode||"3",stemp:Number(e.target.value).toFixed(1)},e.currentTarget));
-$("fanSlider").addEventListener("change",e=>send({pow:1,f_rate:e.target.value},e.currentTarget));
+$("fanSlider").addEventListener("input",()=>{$("fanValue").textContent="Niveau "+$("fanSlider").value});
+$("fanSlider").addEventListener("change",e=>send({pow:1,f_rate:levelToRate(e.target.value)},e.currentTarget));
 $("autoFan").addEventListener("click",e=>send({pow:1,f_rate:"A"},e.currentTarget));
 $("fixedBtn").addEventListener("click",e=>send({pow:1,f_dir:0},e.currentTarget));
 $("movingBtn").addEventListener("click",e=>send({pow:1,f_dir:1},e.currentTarget));
@@ -228,7 +275,7 @@ async function probe(host,timeoutMs){
 }
 async function scanNetwork(){
  const scanBtn=$("scanBtn");
- const base3=cleanIP($("ip").value).split(".").slice(0,3).join(".");
+ const base3=climHost().split(".").slice(0,3).join(".");
  scanBtn.disabled=true;
  const total=254;let done=0;let found=null;
  const setNote=t=>{$("scanNote").textContent=t};
@@ -249,7 +296,7 @@ async function scanNetwork(){
   setNote("✅ Clim trouvée à l'adresse "+found+" (enregistrée automatiquement).");
   readControl(true);
  }else{
-  setNote("❌ Aucune Daikin trouvée sur le sous-réseau "+base3+".0/24. Vérifie que ton appareil est sur le même Wi-Fi/réseau.");
+  setNote("❌ Aucune Daikin trouvée sur le sous-réseau "+base3+".0/24."+HELP_CORS);
  }
 }
 $("scanBtn").addEventListener("click",e=>{animate(e.currentTarget);scanNetwork()});
@@ -259,9 +306,9 @@ document.querySelectorAll("[data-path]").forEach(b=>b.addEventListener("click",a
 $("readAdvancedState").addEventListener("click",()=>readPath("/aircon/get_control_info","output"));
 async function readPath(path,target){
  try{$(target).textContent="Lecture…";const r=await fetch(base()+path,{cache:"no-store"});$(target).textContent=await r.text()}
- catch(e){$(target).textContent="Erreur : "+e.message}
+ catch(e){$(target).textContent="Erreur : "+e.message+HELP_CORS}
 }
-render();readControl(false);setInterval(()=>readControl(false),15000);
+render();readControl(true);setInterval(()=>readControl(false),15000);
 })();
 </script>
 </body>
