@@ -4,8 +4,13 @@
 <title>Clim Annexe — Contrôleur V2</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f6f8;color:#17202a}
-.page{max-width:1020px;margin:auto;padding:14px;display:flex;gap:16px;align-items:flex-start}
-.app{flex:1;min-width:0;max-width:760px}
+.alert-banner{background:#dc2626;color:#fff;text-align:center;font-weight:bold;font-size:17px;letter-spacing:.3px;padding:13px 14px;box-shadow:0 2px 8px #0002}
+/* 3 colonnes : une colonne fantôme à gauche (vide, même largeur que la colonne Halakha à droite) qui
+   garde le "cœur" (pub + clim) visuellement centré, pendant que la Halakha prend tout l'espace
+   restant à droite — sans que rien ne se décale. */
+.page{margin:0 auto;padding:14px;display:grid;grid-template-columns:minmax(0,.55fr) auto minmax(340px,1fr);gap:16px;align-items:start}
+.core{grid-column:2;display:flex;gap:16px;align-items:flex-start}
+.app{flex:1;min-width:0;max-width:560px}
 .head{background:#fff;border-radius:18px;padding:18px;text-align:center;box-shadow:0 3px 14px #0001;position:relative}
 h1{margin:0;font-size:24px}.sub{color:#667085;margin-top:5px;font-size:13px}
 .credit{position:absolute;top:8px;right:14px;font-size:10px;color:#b4bac2;letter-spacing:.2px}
@@ -40,14 +45,28 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 .ad-slot{background:#fff;border:2px dashed #ccd2d8;color:#98a1ab;text-align:center;padding:26px 12px;font-size:13px;font-weight:bold;line-height:1.5}
 .ad-slot small{display:block;font-weight:normal;margin-top:6px;font-size:11px}
 .ad-slot a{color:#667085}
-@media(max-width:900px){.page{flex-direction:column}.sidebar{width:100%;position:static;flex-direction:row}.ad{flex:1}}
-@media(max-width:560px){.sidebar{flex-direction:column}}
+.halakha{grid-column:3;min-width:340px}
+.halakha-crop{height:1200px;border-radius:12px;overflow:hidden;border:1px solid #e5e8eb;background:#fff}
+.halakha-crop iframe{width:100%;height:100%;border:0;display:block}
+.halakha-link{display:block;text-align:center;font-size:11px;color:#667085;margin-top:10px;text-decoration:none}
+@media(max-width:900px){
+.page{display:flex;flex-direction:column}
+.core{display:contents}
+.app{order:1;max-width:100%}
+.halakha{order:2;min-width:0;width:100%}
+.sidebar{order:3;width:100%;flex-direction:row}
+.ad{flex:1}
+.halakha-crop{height:500px}
+}
+@media(max-width:560px){.sidebar{flex-direction:column}.halakha-crop{height:420px}}
 @media(max-width:450px){.page{padding:8px}}
 </style>
 </head>
 <body>
+<div class="alert-banner">⏰ Minha - Arvit : 19h45 précises</div>
 <div class="page">
 
+<div class="core">
 <aside class="sidebar">
 <div class="ad ad-edn">
 <span class="ad-tag">Publicité</span>
@@ -132,7 +151,7 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 <div class="field"><label>Adresse IP de la clim</label><input id="ip" value="192.168.0.139" style="width:100%"></div>
 <div class="grid"><button type="button" id="saveIp">💾 Enregistrer</button><button type="button" id="testIp">🔌 Tester</button></div>
 <button type="button" id="scanBtn" style="width:100%;margin-top:9px">🔍 Scanner le réseau (IP a changé ?)</button>
-<div class="note" id="scanNote" style="margin-top:10px">Fichier unique et autonome — aucun serveur ni script à installer. Les commandes (ON/OFF, température, mode…) s'envoient toujours normalement. La lecture d'état affichée peut rester indisponible selon ton navigateur/réseau (voir message d'état en bas de l'onglet Commandes) — c'est une limite de sécurité des navigateurs face à un appareil qui n'autorise pas explicitement la lecture cross-origin, pas quelque chose de réparable dans ce fichier seul.</div>
+<div class="note" id="scanNote" style="margin-top:10px">Installe le userscript Tampermonkey fourni à côté (<code>daikin_cors_bypass.user.js</code>) pour que la lecture d'état fonctionne — sans lui, seules les commandes (ON/OFF, température, mode…) passent, sans confirmation lisible.</div>
 </div>
 
 <div class="card">
@@ -166,6 +185,17 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 <div class="card"><h2>🧪 Réponse API</h2><pre id="output">—</pre></div>
 </section>
 </div>
+</div>
+
+<aside class="halakha">
+<div class="card" style="margin:0">
+<h2>📖 Halakha du jour</h2>
+<div class="halakha-crop">
+<iframe src="https://halachayomit.co.il/fr/default.aspx" title="Halakha du jour"></iframe>
+</div>
+<a class="halakha-link" href="https://halachayomit.co.il/fr/default.aspx" target="_blank" rel="noopener">Voir la page complète ↗</a>
+</div>
+</aside>
 
 </div>
 
@@ -175,6 +205,9 @@ let current={pow:0,mode:"3",stemp:25,f_rate:"3",f_dir:"0"};
 const $=id=>document.getElementById(id);
 let ip=localStorage.getItem("daikin_ip")||"192.168.0.139";$("ip").value=ip;
 
+// La lecture (get_control_info, capteurs...) nécessite de LIRE la réponse de la Daikin, ce que le
+// navigateur bloque par défaut (CORS) tant que le userscript Tampermonkey fourni à côté
+// (daikin_cors_bypass.user.js) n'est pas installé et actif — il patche fetch() pour cette page.
 function cleanIP(v){return v.trim().replace(/^https?:\/\//,"").replace(/\/.*$/,"")}
 function climHost(){return cleanIP($("ip").value)}
 function base(){return "http://"+climHost()}
@@ -206,12 +239,7 @@ function render(){
  $("mode").value=modeKey;
  $("advTemp").value=Number(current.stemp)||25;$("advFan").value=String(current.f_rate);$("advDir").value=moving?"1":"0";
 }
-// Ce fichier est 100% autonome, un seul .html, rien d'autre à installer.
-// Limite technique (pas contournable en JS pur, quel que soit le code) : si ta clim ne renvoie pas
-// d'en-tête CORS, le navigateur autorise l'ENVOI des commandes mais refuse de te laisser LIRE la
-// réponse — d'où le message "état non lisible" ci-dessous quand ça arrive. Les boutons continuent
-// de fonctionner en aveugle dans ce cas (comme le confirment tes tests actuels).
-const HELP_CORS=" (état illisible depuis le navigateur — limite du réseau/appareil, pas un bug du fichier)";
+const HELP_CORS=" — installe/active le userscript Tampermonkey « Daikin CORS Bypass » (daikin_cors_bypass.user.js).";
 async function readControl(show=true){
  try{
   const r=await fetch(base()+"/aircon/get_control_info",{cache:"no-store"});
@@ -229,24 +257,29 @@ async function readControl(show=true){
 async function send(params,el){
  if(el)animate(el);
  const merged={pow:current.pow,mode:current.mode||"3",stemp:Number(current.stemp||25).toFixed(1),f_rate:current.f_rate||"3",f_dir:current.f_dir||"0",...params};
+ const url=base()+"/aircon/set_control_info?"+new URLSearchParams(merged).toString();
  message("⏳ Commande envoyée…");
  try{
-  const r=await fetch(base()+"/aircon/set_control_info?"+new URLSearchParams(merged).toString(),{cache:"no-store"});
+  // Chemin normal (userscript actif) : on lit la vraie confirmation de la clim.
+  const r=await fetch(url,{cache:"no-store"});
   const o=parse(await r.text());
   if(o.ret!=="OK")throw Error(o.ret||"Réponse invalide");
   current={...current,...merged};render();
   $("connection").textContent="🟢 connecté";
   message("✅ Commande appliquée");
  }catch(e){
-  // Repli : si la lecture de la réponse échoue (userscript absent), on tente quand même l'envoi
-  // en mode no-cors — la commande peut passer côté clim même si on ne peut pas lire la confirmation.
-  try{await fetch(base()+"/aircon/set_control_info?"+new URLSearchParams(merged).toString(),{mode:"no-cors",cache:"no-store"});
+  // Repli sans userscript : le navigateur envoie quand même la requête (la clim l'applique
+  // réellement), on ne peut juste pas en lire la confirmation — donc pas d'erreur trompeuse,
+  // on l'envoie en mode no-cors et on suppose que ça a marché.
+  try{
+   await fetch(url,{mode:"no-cors",cache:"no-store"});
    current={...current,...merged};render();
-   message("⚠️ Commande envoyée mais pas confirmée (lecture bloquée)"+HELP_CORS,"error");
+   $("connection").textContent="🟡 commandes seules";
+   message("✅ Commande envoyée (sans confirmation lisible"+HELP_CORS+")");
   }catch(e2){
-   message("❌ Échec de la commande : "+e.message+HELP_CORS,"error");
+   $("connection").textContent="🔴 injoignable";
+   message("❌ Échec de la commande : "+e2.message,"error");
   }
-  $("connection").textContent="🔴 injoignable";
  }
 }
 function switchTab(n){$("tab0").classList.toggle("active",n===0);$("tab1").classList.toggle("active",n===1);$("simple").classList.toggle("active",n===0);$("advanced").classList.toggle("active",n===1)}
