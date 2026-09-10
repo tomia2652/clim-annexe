@@ -252,7 +252,7 @@ function render(){
  $("stateCard").className="card state "+(on?"on":"off");
  $("stateTitle").textContent=on?"EN MARCHE":"ÉTEINTE";
  $("stateDetail").textContent=on
-  ? MODE_LABELS[modeKey]+" · "+Number(current.stemp).toFixed(1)+" °C"
+  ? MODE_LABELS[modeKey]+(modeKey==="6"?"":" · "+(Number(current.stemp)||25).toFixed(1)+" °C")
   :"La climatisation est actuellement arrêtée";
  $("tempSlider").value=Number(current.stemp)||25;$("tempValue").textContent=(Number(current.stemp)||25).toFixed(1)+" °C";
  if(!auto)$("fanSlider").value=rateToLevel(current.f_rate);
@@ -280,7 +280,10 @@ async function readControl(show=true){
 }
 async function send(params,el){
  if(el)animate(el);
- const merged={pow:current.pow,mode:current.mode||"3",stemp:Number(current.stemp||25).toFixed(1),f_rate:current.f_rate||"3",f_dir:current.f_dir||"0",...params};
+ // current.stemp peut valoir "--" (non numérique) quand la clim est en mode Ventilation seule,
+ // où la température ne s'applique pas — il faut alors retomber sur une valeur par défaut valide.
+ const stempNum=Number(current.stemp);
+ const merged={pow:current.pow,mode:current.mode||"3",stemp:(isNaN(stempNum)?25:stempNum).toFixed(1),f_rate:current.f_rate||"3",f_dir:current.f_dir||"0",...params};
  const url=appendLpw(base()+"/aircon/set_control_info?"+new URLSearchParams(merged).toString());
  message("⏳ Commande envoyée…");
  try{
