@@ -201,7 +201,13 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 <div class="card" style="margin:0">
 <h2>📖 Halakha du jour</h2>
 <div class="halakha-crop">
-<iframe src="https://halachayomit.co.il/fr/default.aspx" title="Halakha du jour"></iframe>
+<iframe id="halakhaFrame" title="Halakha du jour" loading="lazy"></iframe>
+<script>
+// Le site de la Halakha est parfois lent à répondre : on ne définit son "src" qu'une fois que le
+// reste de la page a fini de charger, pour que l'onglet du navigateur arrête de tourner tout de
+// suite au lieu d'attendre cette iframe (qui, elle, continue de charger en arrière-plan).
+window.addEventListener("load",()=>{setTimeout(()=>{const f=document.getElementById("halakhaFrame");if(f)f.src="https://halachayomit.co.il/fr/default.aspx"},50)});
+</script>
 </div>
 <a class="halakha-link" href="https://halachayomit.co.il/fr/default.aspx" target="_blank" rel="noopener">Voir la page complète ↗</a>
 </div>
