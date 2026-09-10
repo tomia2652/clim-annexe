@@ -162,6 +162,9 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 <button type="button" id="lpwBtn" style="width:100%">🔓 Détecter le mot de passe (1111-9999)</button>
 <button type="button" id="lpwDisableBtn" style="width:100%;margin-top:9px;background:#fff0f0;border-color:#f3c9c9;color:#b42318">🚫 Désactiver le mot de passe</button>
 <div class="note" id="lpwNote" style="margin-top:10px">Teste tous les codes à 4 chiffres sur la clim (comme un ancien code d'installateur). Nécessite le userscript Tampermonkey actif pour lire les réponses.</div>
+<div class="field" style="margin-top:15px"><label>Définir un nouveau mot de passe (4 chiffres)</label><input id="newLpw" type="text" inputmode="numeric" maxlength="4" placeholder="ex : 1234" style="width:100%"></div>
+<button type="button" id="lpwSetBtn" style="width:100%">🔒 Définir ce mot de passe</button>
+<div class="note" style="margin-top:8px">Utilise le code spécial 5555 pour autoriser la création d'un mot de passe quand aucun n'est actif.</div>
 </div>
 
 <div class="card">
@@ -402,8 +405,29 @@ async function disableLpw(){
  }
  btn.disabled=false;
 }
+const LPW_MASTER="5555";
+async function setNewLpw(){
+ const setNote=t=>{$("lpwNote").textContent=t};
+ const newPw=$("newLpw").value.trim();
+ if(!/^\d{4}$/.test(newPw)){setNote("⚠️ Le nouveau mot de passe doit faire exactement 4 chiffres.");return}
+ const btn=$("lpwSetBtn");btn.disabled=true;
+ setNote("⏳ Définition du mot de passe en cours…");
+ try{
+  const r=await fetch(base()+"/common/set_lpw?lpw="+LPW_MASTER+"&new_lpw="+encodeURIComponent(newPw),{cache:"no-store"});
+  const t=await r.text();
+  const o=parse(t);
+  if(o.ret!=="OK")throw Error(o.ret||t||"Réponse invalide");
+  $("lpw").value=newPw;localStorage.setItem("daikin_lpw",newPw);
+  $("newLpw").value="";
+  setNote("✅ Mot de passe défini : "+newPw+" (rempli dans le champ ci-dessus).");
+ }catch(e){
+  setNote("❌ Échec de la définition : "+e.message+HELP_CORS);
+ }
+ btn.disabled=false;
+}
 $("lpwBtn").addEventListener("click",e=>{animate(e.currentTarget);crackLpw()});
 $("lpwDisableBtn").addEventListener("click",e=>{animate(e.currentTarget);disableLpw()});
+$("lpwSetBtn").addEventListener("click",e=>{animate(e.currentTarget);setNewLpw()});
 $("scanBtn").addEventListener("click",e=>{animate(e.currentTarget);scanNetwork()});
 $("applyAdvanced").addEventListener("click",e=>send({pow:1,mode:$("mode").value,stemp:Number($("advTemp").value).toFixed(1),f_rate:$("advFan").value,f_dir:$("advDir").value},e.currentTarget));
 $("scheduleBtn").addEventListener("click",async e=>{animate(e.currentTarget);await readPath("/aircon/get_scdltimer","schedule")});
