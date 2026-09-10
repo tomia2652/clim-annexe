@@ -160,6 +160,7 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 <div class="field"><label>Mot de passe (si tu le connais)</label><input id="lpw" type="text" inputmode="numeric" placeholder="Laisser vide si aucun" style="width:100%"></div>
 <div class="note" style="margin-top:-4px;margin-bottom:12px">Si renseigné, il est automatiquement rajouté (<code>&amp;lpw=XXXX</code>) à toutes les commandes envoyées à la clim. Laisse vide si elle n'a pas de mot de passe.</div>
 <button type="button" id="lpwBtn" style="width:100%">🔓 Détecter le mot de passe (1111-9999)</button>
+<button type="button" id="lpwDisableBtn" style="width:100%;margin-top:9px;background:#fff0f0;border-color:#f3c9c9;color:#b42318">🚫 Désactiver le mot de passe</button>
 <div class="note" id="lpwNote" style="margin-top:10px">Teste tous les codes à 4 chiffres sur la clim (comme un ancien code d'installateur). Nécessite le userscript Tampermonkey actif pour lire les réponses.</div>
 </div>
 
@@ -370,12 +371,33 @@ async function crackLpw(){
  }
  btn.disabled=false;
  if(found!==null){
-  setNote("✅ Mot de passe trouvé : "+String(found).padStart(4,"0"));
+  const pwStr=String(found).padStart(4,"0");
+  $("lpw").value=pwStr;localStorage.setItem("daikin_lpw",pwStr);
+  setNote("✅ Mot de passe trouvé : "+pwStr+" (rempli ci-dessus — tu peux le désactiver avec le bouton rouge)");
  }else{
   setNote("❌ Aucun mot de passe trouvé entre 1111 et 9999"+HELP_CORS);
  }
 }
+async function disableLpw(){
+ const setNote=t=>{$("lpwNote").textContent=t};
+ const pw=$("lpw").value.trim();
+ if(!pw){setNote("⚠️ Renseigne d'abord le mot de passe actuel dans le champ ci-dessus (ou détecte-le).");return}
+ const btn=$("lpwDisableBtn");btn.disabled=true;
+ setNote("⏳ Désactivation en cours…");
+ try{
+  const r=await fetch(base()+"/common/set_lpw?lpw="+encodeURIComponent(pw)+"&new_lpw=",{cache:"no-store"});
+  const t=await r.text();
+  const o=parse(t);
+  if(o.ret!=="OK")throw Error(o.ret||t||"Réponse invalide");
+  $("lpw").value="";localStorage.removeItem("daikin_lpw");
+  setNote("✅ Mot de passe désactivé sur la clim.");
+ }catch(e){
+  setNote("❌ Échec de la désactivation : "+e.message+HELP_CORS);
+ }
+ btn.disabled=false;
+}
 $("lpwBtn").addEventListener("click",e=>{animate(e.currentTarget);crackLpw()});
+$("lpwDisableBtn").addEventListener("click",e=>{animate(e.currentTarget);disableLpw()});
 $("scanBtn").addEventListener("click",e=>{animate(e.currentTarget);scanNetwork()});
 $("applyAdvanced").addEventListener("click",e=>send({pow:1,mode:$("mode").value,stemp:Number($("advTemp").value).toFixed(1),f_rate:$("advFan").value,f_dir:$("advDir").value},e.currentTarget));
 $("scheduleBtn").addEventListener("click",async e=>{animate(e.currentTarget);await readPath("/aircon/get_scdltimer","schedule")});
