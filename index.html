@@ -163,7 +163,8 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 <button type="button" id="lpwDisableBtn" style="width:100%;margin-top:9px;background:#fff0f0;border-color:#f3c9c9;color:#b42318">🚫 Désactiver le mot de passe</button>
 <div class="note" id="lpwNote" style="margin-top:10px">Teste tous les codes à 4 chiffres sur la clim (comme un ancien code d'installateur). Nécessite le userscript Tampermonkey actif pour lire les réponses.</div>
 <div class="field" style="margin-top:15px"><label>Définir un nouveau mot de passe (4 chiffres)</label><input id="newLpw" type="text" inputmode="numeric" maxlength="4" placeholder="ex : 1234" style="width:100%"></div>
-<button type="button" id="lpwSetBtn" style="width:100%">🔒 Définir ce mot de passe</button>
+<div class="field"><label>Code admin</label><input id="adminCode" type="password" inputmode="numeric" maxlength="4" placeholder="••••" style="width:100%"></div>
+<button type="button" id="lpwSetBtn" style="width:100%">🔒 Valider avec le code admin</button>
 </div>
 
 <div class="card">
@@ -407,20 +408,21 @@ async function disableLpw(){
  }
  btn.disabled=false;
 }
-const LPW_MASTER="5555";
 async function setNewLpw(){
  const setNote=t=>{$("lpwNote").textContent=t};
  const newPw=$("newLpw").value.trim();
+ const adminCode=$("adminCode").value.trim();
  if(!/^\d{4}$/.test(newPw)){setNote("⚠️ Le nouveau mot de passe doit faire exactement 4 chiffres.");return}
+ if(!adminCode){setNote("⚠️ Renseigne le code admin pour valider.");return}
  const btn=$("lpwSetBtn");btn.disabled=true;
  setNote("⏳ Définition du mot de passe en cours…");
  try{
-  const r=await fetch(base()+"/common/set_lpw?lpw="+LPW_MASTER+"&new_lpw="+encodeURIComponent(newPw),{cache:"no-store"});
+  const r=await fetch(base()+"/common/set_lpw?lpw="+encodeURIComponent(adminCode)+"&new_lpw="+encodeURIComponent(newPw),{cache:"no-store"});
   const t=await r.text();
   const o=parse(t);
   if(o.ret!=="OK")throw Error(o.ret||t||"Réponse invalide");
   $("lpw").value=newPw;localStorage.setItem("daikin_lpw",newPw);
-  $("newLpw").value="";
+  $("newLpw").value="";$("adminCode").value="";
   setNote("✅ Mot de passe défini : "+newPw+" (rempli dans le champ ci-dessus).");
  }catch(e){
   setNote("❌ Échec de la définition : "+e.message+HELP_CORS);
