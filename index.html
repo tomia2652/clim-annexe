@@ -156,6 +156,12 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 </div>
 
 <div class="card">
+<h2>🔐 Mot de passe local (LPW)</h2>
+<button type="button" id="lpwBtn" style="width:100%">🔓 Détecter le mot de passe (1111-9999)</button>
+<div class="note" id="lpwNote" style="margin-top:10px">Teste tous les codes à 4 chiffres sur la clim (comme un ancien code d'installateur). Nécessite le userscript Tampermonkey actif pour lire les réponses.</div>
+</div>
+
+<div class="card">
 <h2>⚙️ Commande complète</h2>
 <div class="field"><label>Mode</label><select id="mode" style="width:100%"><option value="0">🔄 Auto (0)</option><option value="2">💧 Déshumidification (2)</option><option value="3">❄️ Froid (3)</option><option value="4">🔥 Chaud (4)</option><option value="6">💨 Ventilation seule (6)</option></select></div>
 <div class="grid">
@@ -333,6 +339,35 @@ async function scanNetwork(){
   setNote("❌ Aucune Daikin trouvée sur le sous-réseau "+base3+".0/24."+HELP_CORS);
  }
 }
+async function crackLpw(){
+ const btn=$("lpwBtn");
+ const setNote=t=>{$("lpwNote").textContent=t};
+ btn.disabled=true;
+ const MIN=1111,MAX=9999,total=MAX-MIN+1,chunkSize=10;
+ let done=0,found=null;
+ for(let p=MIN;p<=MAX && found===null;p+=chunkSize){
+  const chunk=[];
+  for(let i=p;i<Math.min(p+chunkSize,MAX+1);i++)chunk.push(i);
+  const results=await Promise.all(chunk.map(async pin=>{
+   try{
+    const r=await fetch(base()+"/aircon/get_control_info?lpw="+pin,{cache:"no-store"});
+    const t=await r.text();
+    return t.includes("LPW NG")?null:pin;
+   }catch(e){return null}
+  }));
+  done+=chunk.length;
+  setNote("🔍 Test en cours… "+Math.min(100,Math.round(done/total*100))+"% ("+done+"/"+total+" codes testés)");
+  const hit=results.find(x=>x!==null);
+  if(hit!==undefined)found=hit;
+ }
+ btn.disabled=false;
+ if(found!==null){
+  setNote("✅ Mot de passe trouvé : "+String(found).padStart(4,"0"));
+ }else{
+  setNote("❌ Aucun mot de passe trouvé entre 1111 et 9999"+HELP_CORS);
+ }
+}
+$("lpwBtn").addEventListener("click",e=>{animate(e.currentTarget);crackLpw()});
 $("scanBtn").addEventListener("click",e=>{animate(e.currentTarget);scanNetwork()});
 $("applyAdvanced").addEventListener("click",e=>send({pow:1,mode:$("mode").value,stemp:Number($("advTemp").value).toFixed(1),f_rate:$("advFan").value,f_dir:$("advDir").value},e.currentTarget));
 $("scheduleBtn").addEventListener("click",async e=>{animate(e.currentTarget);await readPath("/aircon/get_scdltimer","schedule")});
