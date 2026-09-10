@@ -157,6 +157,8 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 
 <div class="card">
 <h2>🔐 Mot de passe local (LPW)</h2>
+<div class="field"><label>Mot de passe (si tu le connais)</label><input id="lpw" type="text" inputmode="numeric" placeholder="Laisser vide si aucun" style="width:100%"></div>
+<div class="note" style="margin-top:-4px;margin-bottom:12px">Si renseigné, il est automatiquement rajouté (<code>&amp;lpw=XXXX</code>) à toutes les commandes envoyées à la clim. Laisse vide si elle n'a pas de mot de passe.</div>
 <button type="button" id="lpwBtn" style="width:100%">🔓 Détecter le mot de passe (1111-9999)</button>
 <div class="note" id="lpwNote" style="margin-top:10px">Teste tous les codes à 4 chiffres sur la clim (comme un ancien code d'installateur). Nécessite le userscript Tampermonkey actif pour lire les réponses.</div>
 </div>
@@ -211,6 +213,12 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 let current={pow:0,mode:"3",stemp:25,f_rate:"3",f_dir:"0"};
 const $=id=>document.getElementById(id);
 let ip=localStorage.getItem("daikin_ip")||"192.168.0.139";$("ip").value=ip;
+$("lpw").value=localStorage.getItem("daikin_lpw")||"";
+$("lpw").addEventListener("change",()=>{localStorage.setItem("daikin_lpw",$("lpw").value.trim())});
+function appendLpw(url){
+ const v=$("lpw").value.trim();
+ return v?url+(url.includes("?")?"&":"?")+"lpw="+encodeURIComponent(v):url;
+}
 
 // La lecture (get_control_info, capteurs...) nécessite de LIRE la réponse de la Daikin, ce que le
 // navigateur bloque par défaut (CORS) tant que le userscript Tampermonkey fourni à côté
@@ -249,7 +257,7 @@ function render(){
 const HELP_CORS=" — installe/active le userscript Tampermonkey « Daikin CORS Bypass » (daikin_cors_bypass.user.js).";
 async function readControl(show=true){
  try{
-  const r=await fetch(base()+"/aircon/get_control_info",{cache:"no-store"});
+  const r=await fetch(appendLpw(base()+"/aircon/get_control_info"),{cache:"no-store"});
   if(!r.ok)throw Error("HTTP "+r.status);
   const o=parse(await r.text());
   if(o.ret!=="OK")throw Error(o.ret||"Réponse invalide");
@@ -264,7 +272,7 @@ async function readControl(show=true){
 async function send(params,el){
  if(el)animate(el);
  const merged={pow:current.pow,mode:current.mode||"3",stemp:Number(current.stemp||25).toFixed(1),f_rate:current.f_rate||"3",f_dir:current.f_dir||"0",...params};
- const url=base()+"/aircon/set_control_info?"+new URLSearchParams(merged).toString();
+ const url=appendLpw(base()+"/aircon/set_control_info?"+new URLSearchParams(merged).toString());
  message("⏳ Commande envoyée…");
  try{
   // Chemin normal (userscript actif) : on lit la vraie confirmation de la clim.
@@ -374,7 +382,7 @@ $("scheduleBtn").addEventListener("click",async e=>{animate(e.currentTarget);awa
 document.querySelectorAll("[data-path]").forEach(b=>b.addEventListener("click",async e=>{animate(e.currentTarget);await readPath(e.currentTarget.dataset.path,"output")}));
 $("readAdvancedState").addEventListener("click",()=>readPath("/aircon/get_control_info","output"));
 async function readPath(path,target){
- try{$(target).textContent="Lecture…";const r=await fetch(base()+path,{cache:"no-store"});$(target).textContent=await r.text()}
+ try{$(target).textContent="Lecture…";const r=await fetch(appendLpw(base()+path),{cache:"no-store"});$(target).textContent=await r.text()}
  catch(e){$(target).textContent="Erreur : "+e.message+HELP_CORS}
 }
 render();readControl(true);setInterval(()=>readControl(false),15000);
