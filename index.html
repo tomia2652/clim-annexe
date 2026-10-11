@@ -152,6 +152,7 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 <div class="note">Par défaut, seules les commandes (ON/OFF, température, mode…) fonctionnent — sans confirmation lisible. Pour que la lecture d'état fonctionne aussi, installe ce petit script une seule fois, sur chaque navigateur/ordinateur que tu utilises :</div>
 <ol style="font-size:13px;color:#344054;line-height:1.7;padding-left:20px;margin:10px 0">
 <li>Installe l'extension <b>Tampermonkey</b> : <a href="https://www.tampermonkey.net/" target="_blank" rel="noopener">tampermonkey.net</a> (bouton "Download" selon ton navigateur : Chrome, Firefox, Edge…).</li>
+<li>Sur Chrome/Edge : va dans <code>chrome://extensions</code> (ou <code>edge://extensions</code>), trouve Tampermonkey, clique sur "Détails", et active <b>"Autoriser les scripts utilisateur"</b> ("Allow User Scripts") — sans ça, le navigateur bloque les extensions de gestion de scripts.</li>
 <li>Une fois l'icône Tampermonkey visible dans ton navigateur, clique sur ce lien pour ouvrir le script : <a href="https://tomia2652.github.io/clim-annexe/daikin_cors_bypass.user.js" target="_blank" rel="noopener">daikin_cors_bypass.user.js</a>.</li>
 <li>Tampermonkey ouvre automatiquement une page d'installation du script → clique sur <b>"Installer"</b>.</li>
 <li>Recharge cette page (clim-annexe) — en haut tu devrais voir l'état réel de la clim se mettre à jour tout seul.</li>
