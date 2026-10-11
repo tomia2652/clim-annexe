@@ -64,7 +64,7 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 </style>
 </head>
 <body>
-<div class="alert-banner">⏰ Minha - Arvit : 18h40 précises</div>
+<div class="alert-banner">⏰ Minha - Arvit : 15 min avant Plag Hamincha</div>
 <div class="page">
 
 <div class="core">
@@ -148,18 +148,30 @@ pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;border-radius:11px;pad
 
 <section id="advanced" class="panel">
 <div class="card">
+<h2>🧩 Installer la lecture complète (Tampermonkey)</h2>
+<div class="note">Par défaut, seules les commandes (ON/OFF, température, mode…) fonctionnent — sans confirmation lisible. Pour que la lecture d'état fonctionne aussi, installe ce petit script une seule fois, sur chaque navigateur/ordinateur que tu utilises :</div>
+<ol style="font-size:13px;color:#344054;line-height:1.7;padding-left:20px;margin:10px 0">
+<li>Installe l'extension <b>Tampermonkey</b> : <a href="https://www.tampermonkey.net/" target="_blank" rel="noopener">tampermonkey.net</a> (bouton "Download" selon ton navigateur : Chrome, Firefox, Edge…).</li>
+<li>Une fois l'icône Tampermonkey visible dans ton navigateur, clique sur ce lien pour ouvrir le script : <a href="https://tomia2652.github.io/clim-annexe/daikin_cors_bypass.user.js" target="_blank" rel="noopener">daikin_cors_bypass.user.js</a>.</li>
+<li>Tampermonkey ouvre automatiquement une page d'installation du script → clique sur <b>"Installer"</b>.</li>
+<li>Recharge cette page (clim-annexe) — en haut tu devrais voir l'état réel de la clim se mettre à jour tout seul.</li>
+</ol>
+<div class="note">📱 Sur mobile et tablette, ce n'est en général <b>pas possible</b> (les navigateurs mobiles classiques — Safari iOS, Chrome Android… — ne permettent pas d'installer d'extensions). Seules les commandes de base y fonctionneront ; passe par un ordinateur pour la lecture complète.</div>
+</div>
+
+<div class="card">
 <h2>🌐 Connexion</h2>
 <div class="field"><label>Adresse IP de la clim</label><input id="ip" value="192.168.0.138" style="width:100%"></div>
 <div class="grid"><button type="button" id="saveIp">💾 Enregistrer</button><button type="button" id="testIp">🔌 Tester</button></div>
 <button type="button" id="scanBtn" style="width:100%;margin-top:9px">🔍 Scanner le réseau (IP a changé ?)</button>
-<div class="note" id="scanNote" style="margin-top:10px">Installe le userscript Tampermonkey fourni à côté (<code>daikin_cors_bypass.user.js</code>) pour que la lecture d'état fonctionne — sans lui, seules les commandes (ON/OFF, température, mode…) passent, sans confirmation lisible.</div>
+<div class="note" id="scanNote" style="margin-top:10px">Sans le userscript (voir la section "Installer la lecture complète" ci-dessus), seules les commandes passent — sans confirmation lisible.</div>
 </div>
 
 <div class="card">
 <h2>🔐 Mot de passe local (LPW)</h2>
 <div class="field"><label>Mot de passe (si tu le connais)</label><input id="lpw" type="text" inputmode="numeric" placeholder="Laisser vide si aucun" style="width:100%"></div>
 <div class="note" style="margin-top:-4px;margin-bottom:12px">Si renseigné, il est automatiquement rajouté (<code>&amp;lpw=XXXX</code>) à toutes les commandes envoyées à la clim. Laisse vide si elle n'a pas de mot de passe.</div>
-<button type="button" id="lpwBtn" style="width:100%">🔓 Détecter le mot de passe (1111-9999)</button>
+<button type="button" id="lpwBtn" style="width:100%">🔓 Détecter le mot de passe (0000-9999)</button>
 <button type="button" id="lpwDisableBtn" style="width:100%;margin-top:9px;background:#fff0f0;border-color:#f3c9c9;color:#b42318">🚫 Désactiver le mot de passe</button>
 <div class="note" id="lpwNote" style="margin-top:10px">Teste tous les codes à 4 chiffres sur la clim (comme un ancien code d'installateur). Nécessite le userscript Tampermonkey actif pour lire les réponses.</div>
 <div class="field" style="margin-top:15px"><label>Définir un nouveau mot de passe (4 chiffres)</label><input id="newLpw" type="text" inputmode="numeric" maxlength="4" placeholder="ex : 1234" style="width:100%"></div>
@@ -257,14 +269,16 @@ function render(){
   :"La climatisation est actuellement arrêtée";
  $("tempSlider").value=Number(current.stemp)||25;$("tempValue").textContent=(Number(current.stemp)||25).toFixed(1)+" °C";
  if(!auto)$("fanSlider").value=rateToLevel(current.f_rate);
- $("fanSlider").disabled=auto;$("fanValue").textContent=auto?"AUTO":"Niveau "+rateToLevel(current.f_rate);
+ // Le curseur reste cliquable même en mode Auto : le bouger envoie un niveau manuel 1-5 et sort
+ // automatiquement du mode Auto (il ne faut donc pas le désactiver, sinon impossible d'en sortir).
+ $("fanValue").textContent=auto?"AUTO":"Niveau "+rateToLevel(current.f_rate);
  $("autoFan").classList.toggle("active",auto);
  $("fixedBtn").classList.toggle("active",!moving);$("movingBtn").classList.toggle("active",moving);
  document.querySelectorAll(".modeBtn").forEach(b=>b.classList.toggle("active",b.dataset.mode===modeKey));
  $("mode").value=modeKey;
  $("advTemp").value=Number(current.stemp)||25;$("advFan").value=String(current.f_rate);$("advDir").value=moving?"1":"0";
 }
-const HELP_CORS=" — installe/active le userscript Tampermonkey « Daikin CORS Bypass » (daikin_cors_bypass.user.js).";
+const HELP_CORS=" — seul l'envoi de commandes est possible sans le userscript actif ; pour la lecture complète, suis le tutoriel d'installation dans l'onglet Avancé (section « Installer la lecture complète »).";
 async function readControl(show=true){
  try{
   const r=await fetch(appendLpw(base()+"/aircon/get_control_info"),{cache:"no-store"});
@@ -364,14 +378,15 @@ async function crackLpw(){
  const btn=$("lpwBtn");
  const setNote=t=>{$("lpwNote").textContent=t};
  btn.disabled=true;
- const MIN=1111,MAX=9999,total=MAX-MIN+1,chunkSize=10;
+ const MIN=0,MAX=9999,total=MAX-MIN+1,chunkSize=10;
  let done=0,found=null;
  for(let p=MIN;p<=MAX && found===null;p+=chunkSize){
   const chunk=[];
   for(let i=p;i<Math.min(p+chunkSize,MAX+1);i++)chunk.push(i);
   const results=await Promise.all(chunk.map(async pin=>{
    try{
-    const r=await fetch(base()+"/aircon/get_control_info?lpw="+pin,{cache:"no-store"});
+    const pinStr=String(pin).padStart(4,"0");
+    const r=await fetch(base()+"/aircon/get_control_info?lpw="+pinStr,{cache:"no-store"});
     const t=await r.text();
     return t.includes("LPW NG")?null:pin;
    }catch(e){return null}
@@ -387,7 +402,7 @@ async function crackLpw(){
   $("lpw").value=pwStr;localStorage.setItem("daikin_lpw",pwStr);
   setNote("✅ Mot de passe trouvé : "+pwStr+" (rempli ci-dessus — tu peux le désactiver avec le bouton rouge)");
  }else{
-  setNote("❌ Aucun mot de passe trouvé entre 1111 et 9999"+HELP_CORS);
+  setNote("❌ Aucun mot de passe trouvé entre 0000 et 9999"+HELP_CORS);
  }
 }
 async function disableLpw(){
